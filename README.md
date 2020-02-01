@@ -1,3 +1,6 @@
+# AngularPong
+This project is an adaptation of Udemy's HTML5 game development course. I wanted a challenge, so I re-wrote it in angular. 
+
 # Gamelab
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.3.23.

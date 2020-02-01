@@ -1,4 +1,10 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { BackgroundViewModel } from '../ViewModels/BackgroundViewModel';
+import { PaddleViewModel } from '../ViewModels/PaddleViewModel';
+import { BallViewModel } from '../ViewModels/BallViewModel';
+import { Ball } from '../gameObjects/Ball';
+import { Position } from '../gameObjects/position';
+import { Paddle } from '../gameObjects/Paddle';
 
 @Component({
 	selector: 'app-home',
@@ -14,16 +20,23 @@ export class HomeComponent implements OnInit
 
 	PADDLE_HEIGHT: number = 100;
 
-	ballX: number = 50;
-	ballY: number = 50;
+	ball: Ball;
 
-	ballSpeedX: number = 5;
-	ballSpeedY: number = 4;
+	backgroundViewModel: BackgroundViewModel;
+	ballViewModel: BallViewModel;
+	leftHandPaddleViewModel: PaddleViewModel;
+	rightHandPaddleViewModel: PaddleViewModel;
 
-	height = 600;
-	width = 800;
+	fieldHeight = 600;
+	fieldWidth = 800;
 
-	paddle1Y: number = 250;
+	paddle1: Paddle = new Paddle(0, 250);
+	//paddle1Y: number = 250;
+	//paddle1X: number = 10;
+
+	paddle2: Paddle = new Paddle(10, 250);
+	paddle2Y: number = 250;
+	paddle2X: number = 10;
 
 	constructor() { }
 
@@ -35,138 +48,119 @@ export class HomeComponent implements OnInit
 
 	initialize()
 	{
-		this.canvasContext = this.canvas.nativeElement.getContext('2d');
-		this.moveAndAnimate();
-
 		var framesPerSecond = 30;
+
+		this.ball = new Ball();
+
+		this.canvasContext = this.canvas.nativeElement.getContext('2d');
+
+		this.initializeViewModels();
 
 		//()=> means function() such that, it's like a lambda.
 		setInterval(() => { this.moveAndAnimate(); }, 1000 / framesPerSecond);
 
+		this.addMouseEventListener();
+
+	}
+
+	initializeViewModels()
+	{
+		this.backgroundViewModel = new BackgroundViewModel(this.canvasContext);
+		this.ballViewModel = new BallViewModel(this.canvasContext);
+		this.leftHandPaddleViewModel = new PaddleViewModel(this.canvasContext);
+		this.rightHandPaddleViewModel = new PaddleViewModel(this.canvasContext);
+	}
+
+	addMouseEventListener()
+	{
 		this.canvas.nativeElement.addEventListener('mousemove', (evt) =>
 		{
 			var mousePos = this.calculateMousePos(evt);
-			this.paddle1Y = mousePos.y - (this.PADDLE_HEIGHT / 2);
-		});
 
+			//this.paddle1Y = mousePos.y - (this.PADDLE_HEIGHT / 2);
+			this.paddle1.paddlePosition.y = mousePos.y - (this.PADDLE_HEIGHT / 2);
+			console.log(this.paddle1.paddlePosition);
+
+		});
 	}
 
 	ballReset()
 	{
-		this.ballX = this.width / 2;
-		this.ballY = this.height / 2;
+		this.ball.reset(this.fieldWidth, this.fieldHeight);
 	}
 
-	calculateMousePos(evt)
+	calculateMousePos(evt): Position 
 	{
 		var rect = this.canvas.nativeElement.getBoundingClientRect();
 		var root = document.documentElement;
 		var mouseX = evt.clientX - rect.left - root.scrollLeft;
 		var mouseY = evt.clientY - rect.top - root.scrollTop;
-		return {
-			x: mouseX,
-			y: mouseY
-		};
+		var position = new Position();
+		position.x = mouseX;
+		position.y = mouseY
+		return position;
 	}
 
 	private moveAndAnimate()
 	{
 		this.move();
+
 		this.animate();
 	}
 
 	private move(): void
 	{
-		this.ballX = this.ballX + this.ballSpeedX;
-		this.ballY = this.ballY + this.ballSpeedY;
+		this.ball.move();
 
-		if (this.ballX < 0)
+		if (this.ball.ballPosition.x <= this.paddle1.paddlePosition.x + 10)
 		{
-			if (this.ballY > this.paddle1Y && this.ballY < this.paddle1Y + this.PADDLE_HEIGHT)
+			if (this.ball.ballPosition.y > this.paddle1.paddlePosition.y && this.ball.ballPosition.y < (this.paddle1.paddlePosition.y + this.PADDLE_HEIGHT))
 			{
-				this.bounceHorizontal();
-			}
-			else
-			{
-				this.ballReset();
+				this.ball.bounceHorizontal();
+
 			}
 		}
 
-
-		if (this.ballX > this.width || this.ballX < 0)
+		//RightHand score mechanism
+		if (this.ball.ballPosition.x <= 0)
 		{
-			this.bounceHorizontal();
+			this.ballReset();
+
 		}
 
-		if (this.ballY > this.height || this.ballY < 0)
+		//LeftHand score mechanism
+		// if (this.ball.ballX >= this.fieldWidth)
+		// {
+		// 	this.ballReset();
+		// }
+
+		//Lefthand singlePlayer algorithm
+		if (this.ball.ballPosition.x >= this.fieldWidth)
 		{
-			this.ballSpeedY = -this.ballSpeedY;
+			this.ball.bounceHorizontal();
 		}
 
-	}
+		//Field bounce logic
+		if (this.ball.ballPosition.y >= this.fieldHeight || this.ball.ballPosition.y <= 0)
+		{
+			this.ball.bounceVertical();
+		}
 
-	private bounceHorizontal(): void
-	{
-		this.ballSpeedX = -this.ballSpeedX;
 	}
 
 	private animate()
 	{
 		//Background
-		let background = new Background(this.canvasContext);
-		background.draw(this.width, this.height);
+		this.backgroundViewModel.draw(this.fieldWidth, this.fieldHeight);
 
 		//LefthandPaddle
-		let paddle = new Paddle(this.canvasContext);
-		paddle.draw(0, this.paddle1Y, 10, 'white')
+		this.leftHandPaddleViewModel.draw(0, this.paddle1.paddlePosition.y, 'white')
 
 		//RighthandPaddle
-		let rightPaddle = new Paddle(this.canvasContext);
-		rightPaddle.draw(this.width - 10, 210, 10, 'white')
+		this.rightHandPaddleViewModel.draw(this.fieldWidth - 10, this.paddle2Y, 'white')
 
-		//Ball
-		let ball = new Ball(this.canvasContext);
-		ball.draw(this.ballX, this.ballY, 'red')
-
-	}
-
-
-}
-
-export class Background
-{
-	constructor(private ctx: CanvasRenderingContext2D) { }
-
-	draw(width: number, height: number)
-	{
-		this.ctx.fillStyle = 'black';
-		this.ctx.fillRect(0, 0, width, height);
-	}
-}
-
-export class Paddle
-{
-	PADDLE_HEIGHT: number = 100;
-
-	constructor(private ctx: CanvasRenderingContext2D) { }
-
-	draw(leftX, topY, width, drawColor)
-	{
-		this.ctx.fillStyle = drawColor;
-		this.ctx.fillRect(leftX, topY, width, this.PADDLE_HEIGHT);
-	}
-}
-
-export class Ball
-{
-	constructor(private ctx: CanvasRenderingContext2D) { }
-
-	draw(ballX, ballY, drawColor)
-	{
-		this.ctx.fillStyle = drawColor;
-		this.ctx.beginPath();
-		this.ctx.arc(ballX, ballY, 10, 0, Math.PI * 2, true);
-		this.ctx.fill();
+		//Ball	
+		this.ballViewModel.draw(this.ball.ballPosition, 'red')
 
 	}
 }

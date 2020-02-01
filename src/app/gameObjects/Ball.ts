@@ -13,7 +13,6 @@ export class Ball
         this.ballPosition.y = 50;
     }
 
-
     move()
     {
         this.ballPosition.x = this.ballPosition.x + this.ballSpeedX;

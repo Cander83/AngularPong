@@ -1,3 +1,5 @@
+import { Position } from '../gameObjects/position';
+
 export class PaddleViewModel
 {
     PADDLE_HEIGHT: number = 100;
@@ -5,9 +7,9 @@ export class PaddleViewModel
 
     constructor(private ctx: CanvasRenderingContext2D) { }
 
-    draw(leftX, topY, drawColor)
+    draw(position: Position, drawColor)
     {
         this.ctx.fillStyle = drawColor;
-        this.ctx.fillRect(leftX, topY, this.PADDLE_WIDTH, this.PADDLE_HEIGHT);
+        this.ctx.fillRect(position.x, position.y, this.PADDLE_WIDTH, this.PADDLE_HEIGHT);
     }
 }

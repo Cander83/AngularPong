@@ -18,9 +18,11 @@ export class HomeComponent implements OnInit
 	canvas: ElementRef<HTMLCanvasElement>;
 	private canvasContext: CanvasRenderingContext2D;
 
-	PADDLE_HEIGHT: number = 100;
+	//PADDLE_HEIGHT: number = 100;
 
 	ball: Ball;
+	paddle1: Paddle;
+	paddle2: Paddle;
 
 	backgroundViewModel: BackgroundViewModel;
 	ballViewModel: BallViewModel;
@@ -30,13 +32,7 @@ export class HomeComponent implements OnInit
 	fieldHeight = 600;
 	fieldWidth = 800;
 
-	paddle1: Paddle = new Paddle(0, 250);
-	//paddle1Y: number = 250;
-	//paddle1X: number = 10;
 
-	paddle2: Paddle = new Paddle(10, 250);
-	paddle2Y: number = 250;
-	paddle2X: number = 10;
 
 	constructor() { }
 
@@ -51,6 +47,9 @@ export class HomeComponent implements OnInit
 		var framesPerSecond = 30;
 
 		this.ball = new Ball();
+
+		this.paddle1 = new Paddle(0, 250);
+		this.paddle2 = new Paddle(this.fieldWidth - 10, 250);
 
 		this.canvasContext = this.canvas.nativeElement.getContext('2d');
 
@@ -77,10 +76,14 @@ export class HomeComponent implements OnInit
 		{
 			var mousePos = this.calculateMousePos(evt);
 
-			//this.paddle1Y = mousePos.y - (this.PADDLE_HEIGHT / 2);
-			this.paddle1.paddlePosition.y = mousePos.y - (this.PADDLE_HEIGHT / 2);
-			console.log(this.paddle1.paddlePosition);
-
+			if (mousePos.x > this.fieldWidth / 2)
+			{	//RightPaddleMove
+				this.paddle2.paddlePosition.y = mousePos.y - (this.paddle2.paddleSize.HEIGHT / 2);
+			}
+			else
+			{	//LeftPaddleMove
+				this.paddle1.paddlePosition.y = mousePos.y - (this.paddle1.paddleSize.HEIGHT / 2);
+			}
 		});
 	}
 
@@ -114,7 +117,7 @@ export class HomeComponent implements OnInit
 
 		if (this.ball.ballPosition.x <= this.paddle1.paddlePosition.x + 10)
 		{
-			if (this.ball.ballPosition.y > this.paddle1.paddlePosition.y && this.ball.ballPosition.y < (this.paddle1.paddlePosition.y + this.PADDLE_HEIGHT))
+			if (this.ball.ballPosition.y > this.paddle1.paddlePosition.y && this.ball.ballPosition.y < (this.paddle1.paddlePosition.y + this.paddle1.paddleSize.HEIGHT))
 			{
 				this.ball.bounceHorizontal();
 
@@ -154,10 +157,10 @@ export class HomeComponent implements OnInit
 		this.backgroundViewModel.draw(this.fieldWidth, this.fieldHeight);
 
 		//LefthandPaddle
-		this.leftHandPaddleViewModel.draw(0, this.paddle1.paddlePosition.y, 'white')
+		this.leftHandPaddleViewModel.draw(this.paddle1.paddlePosition, 'white')
 
 		//RighthandPaddle
-		this.rightHandPaddleViewModel.draw(this.fieldWidth - 10, this.paddle2Y, 'white')
+		this.rightHandPaddleViewModel.draw(this.paddle2.paddlePosition, 'white')
 
 		//Ball	
 		this.ballViewModel.draw(this.ball.ballPosition, 'red')

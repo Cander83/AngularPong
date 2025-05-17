@@ -13,12 +13,9 @@ import { Paddle } from '../gameObjects/Paddle';
 })
 export class HomeComponent implements OnInit
 {
-
 	@ViewChild('canvas', { static: true })
 	canvas: ElementRef<HTMLCanvasElement>;
 	private canvasContext: CanvasRenderingContext2D;
-
-	//PADDLE_HEIGHT: number = 100;
 
 	ball: Ball;
 	paddle1: Paddle;
@@ -31,8 +28,6 @@ export class HomeComponent implements OnInit
 
 	fieldHeight = 600;
 	fieldWidth = 800;
-
-
 
 	constructor() { }
 
